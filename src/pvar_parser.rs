@@ -44,17 +44,35 @@ impl PvarParser {
     }
     
     fn get_meta_idname(input: &str) -> Option<&str> {
-        if let Some(successful_parse) = PvarParser::parse(Rule::infoheader, input).ok() {
-            let parsed_str = successful_parse.as_str();
-            let start_idx = 11;
-            if let Some(substring) = Self::get_substring_from_index(parsed_str, start_idx) {
-                return Some(substring);
-            } else {
-                return None;
+        let pairs = PvarParser::parse(Rule::infoheader, input).ok().unwrap();
+        for pair in pairs {
+            for inner_pair in pair.into_inner() {
+                if inner_pair.as_rule() == Rule::idname {
+                    return Some(inner_pair.as_str())
+                }
             }
-        } else {
-            return None;
         }
+        return None
+    }
+
+    pub fn get_meta_descs(input: &str) -> HashMap<String, String>{
+        let mut kv_pairs = HashMap::new();
+        let pairs = PvarParser::parse(Rule::infoheader, input).ok().unwrap();
+        let mut idname = "";
+        let mut desc = "a";
+        for pair in pairs {
+            for inner_pair in pair.into_inner() {
+                if inner_pair.as_rule() == Rule::idname {
+                    idname = inner_pair.as_str();
+                }
+                if inner_pair.as_rule() == Rule::desc {
+                    desc = inner_pair.as_str();
+    
+                }
+            }
+        }
+        kv_pairs.insert(idname.to_string(), desc.to_string());
+        return kv_pairs
     }
     
     pub fn get_meta_idnames(filepath: &str) -> io::Result<Vec<String>> {
@@ -188,9 +206,12 @@ fn main() -> io::Result<()> {
     //     println!("{:?}", idname);
     // }
 
-    let info: HashMap<String, String> = PvarParser::get_info_kv_pairs("AC=2731;AF=0.545327;AN=5008;NS=2504;DP=19168;EAS_AF=0.124;EX_TARGET;AMR_AF=0.5072;AFR_AF=0.8835;EUR_AF=0.6252;SAS_AF=0.4673;AA=.|||;VT=SNP");
+    // let ids = PvarParser::get_meta_descs("##INFO=<ID=AA,Number=1,Type=String,Description=\"Ancestral Allele. Format: AA|REF|ALT|IndelType. AA: Ancestral allele, REF:Reference Allele, ALT:Alternate Allele, IndelType:Type of Indel (REF, ALT and IndelType are only defined for indels)\">");
+    // println!("{:?}", ids);
+
+    // let info: HashMap<String, String> = PvarParser::get_info_kv_pairs("AC=2731;AF=0.545327;AN=5008;NS=2504;DP=19168;EAS_AF=0.124;EX_TARGET;AMR_AF=0.5072;AFR_AF=0.8835;EUR_AF=0.6252;SAS_AF=0.4673;AA=.|||;VT=SNP");
     // let info = PvarParser::get_info_kv_pairs("AC=2731;AF=0.545327");
-    println!("{:?}", info);
+    // println!("{:?}", info);
 
 
     // let info = get_info_info("data/basic0.pvar");
