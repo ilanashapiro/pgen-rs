@@ -1,0 +1,33 @@
+WHITESPACE = _{ " " | "\t" }
+
+CHROM = @{(ASCII_ALPHANUMERIC)+}
+
+POS = @{(ASCII_DIGIT)+}
+
+ID = @{(ASCII_ALPHANUMERIC)+ ~ ((";" ~ (ASCII_ALPHANUMERIC)+)+)?}
+
+allele = {("A" | "C" | "G" | "T" | "N" | "a" | "c" | "g" | "t" | "n")+}
+
+REF = @{allele}
+
+ALT = @{(allele ~ (("," ~ allele)+)?) | "."}
+
+QUAL = @{(ASCII_DIGIT)+ ~ ("." ~ (ASCII_DIGIT)+)?}
+
+FILTER = @{"PASS" | ((ASCII_ALPHANUMERIC)+ ~ ((";" ~ (ASCII_ALPHANUMERIC)+)+)?)}
+
+alphanum_decimal_pipe = @{ASCII_ALPHANUMERIC | "." | "|"}
+alphanumunderscore = @{ASCII_ALPHANUMERIC | "_"}
+
+key_name = @{(alphanumunderscore)+}
+value = @{(alphanum_decimal_pipe)+}
+
+key_val_pair = {key_name ~ "=" ~ (value ~ (("," ~ value)+)?)}
+
+INFO = {(key_val_pair | key_name )+ ~ ((";" ~ (key_val_pair | key_name))+)?}
+
+line = {CHROM ~ POS ~ ID ~ REF ~ ALT ~ QUAL ~ FILTER ~ INFO}
+
+idname = @{(ASCII_ALPHANUMERIC | "_")+}
+
+infoheader = @{"##INFO=<ID=" ~ idname}

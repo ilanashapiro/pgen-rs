@@ -1,4 +1,6 @@
 /target
 *.vcf
 *.vcf.gz
+
+.errorviz-version
 .env

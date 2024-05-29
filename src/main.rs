@@ -1,5 +1,7 @@
 mod cli;
 mod pfile;
+mod pvar_parser;
+mod filter_parser;
 
 use actix_web::{web, HttpResponse, Responder};
 use clap::Parser;
