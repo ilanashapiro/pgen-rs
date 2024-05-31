@@ -389,6 +389,8 @@ impl Pfile {
             QueryType::Sample => self.psam_reader(),
             QueryType::Variant => self.pvar_reader(),
         }?;
+
+        let descriptions = PvarParser::format_descriptions(&self.pvar_path()).ok().unwrap().join("\n");
         let columns = meta_reader
             .headers()?
             .iter()
@@ -401,7 +403,7 @@ impl Pfile {
             .iter()
             .collect::<Vec<&str>>()
             .join("\t");
-        Ok(columns + "\n" + &first_row)
+        Ok(columns + "\n" + &descriptions + "\n" + &first_row)
     }
 
     pub fn create_ai_query(&self, query_type: &QueryType, prompt: &str) -> io::Result<String> {
@@ -416,7 +418,7 @@ To make these queries not behave statically, the tool instantiates special varia
 
 When filtering, the tool creates variables which correspond to the metadata fields in the sample, such as its identifier `IID`.
 
-Below is a list of all variables as well as sample values for each. The first line corresponds to the variables. The second line is a sample value for each.
+Below is a list of all variables (with INFO being a dictionary), sample values for each variable, and finally one or more lines of descriptions for the keys in the INFO dictionary. The first line corresponds to the variables. The second line is an sample value for each. The remaining lines starting with a "-" are the descriptions of the INFO fields.
 
 ```
 {}
@@ -451,13 +453,13 @@ To make these queries not behave statically, the tool instantiates special varia
 
 When filtering, the tool creates variables which correspond to the standard values seen in a .vcf file. For example, `ALT` references to the alternate allele for the current variant. There may be other variables too.
 
-Below is a list of all variables as well as sample values for each. The first line corresponds to the variables. The second line is a sample value for each.
+Below is a list of all variables (with INFO being a dictionary), sample values for each variable, and finally one or more lines of descriptions for the keys in the INFO dictionary. The first line corresponds to the variables. The second line is a sample value for each. The remaining lines starting with a "-" are the descriptions of the INFO fields.
 
 ```
 {}
 ```
 
-Below are two sample queries:
+Below are three sample queries:
 
 Keep all of the variants with `POS` equal to `10` or `20`.
 
@@ -469,6 +471,12 @@ Keep all of the variants with `G` as the alternate allele and whose `POS` isn't 
 
 ```
 ALT=="G" && POS !="10"
+```
+
+Keep all of the variants with `AC` (meaning allele count, located in the INFO column) equal to `20`.
+
+```
+INFO[AC] == "20"
 ```
 
 I would like you to write me a query with the following specification: {}.

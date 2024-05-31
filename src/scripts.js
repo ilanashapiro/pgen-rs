@@ -33,9 +33,23 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   submitButton.addEventListener('click', () => {
-    const success = Math.random() > 0.5;
-    resultMessage.textContent = success ? 'Success! Queries submitted.' : 'Error: Something went wrong.';
-    resultMessage.style.color = success ? 'green' : 'red';
+    // const success = Math.random() > 0.5;
+    let queryText = "";
+    if (sampleQueryCheckbox.checked) {
+      if (sampleQueryInput.value != "") {
+        queryText += " -s '" + sampleQueryInput.value + "'";
+      }
+    } else {
+      if (variantQueryCheckbox.checked) {
+        queryText += "'" + variantQueryInput.value + "'";
+      }
+    }
+    console.log(queryText);
+    const querystr = 'pgen-rs query -i ' + queryText;
+    submitQuery(querystr).then(success => {
+      resultMessage.textContent = success ? 'Success! Queries submitted.' : 'Error: Something went wrong.';
+      resultMessage.style.color = success ? 'green' : 'red';
+    });
   });
 
   async function displaySuggestions(listElement, queryType, queryInput, prompt) {
@@ -57,5 +71,19 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       listElement.appendChild(listItem);
     });
+  }
+
+  async function submitQuery(query) {
+    const response = await fetch('/submit_query', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({"query": query})
+    });
+    const responseBody = await response.text(); // Extract the response body
+    console.log(responseBody);
+    const success = responseBody.includes('Success');
+    return success
   }
 });

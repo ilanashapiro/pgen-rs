@@ -104,6 +104,7 @@ async fn submit_query(req_body: web::Json<SubmitQueryRequest>) -> impl Responder
                     .query_metadata(&mut reader, query, query_fstring)
                     .unwrap();
             }
+            return HttpResponse::Ok().body("Success: executed query");
         }
         Some(Commands::Filter {
             pfile_prefix,
@@ -115,6 +116,7 @@ async fn submit_query(req_body: web::Json<SubmitQueryRequest>) -> impl Responder
             let out_file =
                 out_file.unwrap_or_else(|| format!("{}.pgen-rs.vcf", pfile.pfile_prefix).into());
             pfile.output_vcf(sam_query, var_query, out_file).unwrap();
+            return HttpResponse::Ok().body("Success: created VCF file");
         }
         None => {
             return HttpResponse::BadRequest().body("Invalid user query: No command provided");

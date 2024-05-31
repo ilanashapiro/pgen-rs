@@ -30,6 +30,6 @@ line = {CHROM ~ POS ~ ID ~ REF ~ ALT ~ QUAL ~ FILTER ~ INFO}
 
 idname = @{(ASCII_ALPHANUMERIC | "_")+}
 
-desc = @{(ASCII_ALPHANUMERIC | "_" | "|" | "." | "," | ")" | "(" | ":" | WHITESPACE)+}
+desc = @{(ASCII_ALPHANUMERIC | "_" | "|" | "." | "," | ")" | "(" | ":" | "<" | ">" | ";" | "'" | "+" | "-" | "*" | "&" | "%" | WHITESPACE)+}
 
-infoheader = {"##INFO=<ID=" ~ idname ~ "," ~ "Number=" ~ ASCII_ALPHANUMERIC ~ ",Type=" ~ (ASCII_ALPHANUMERIC)+ ~ "," ~ "Description=\"" ~ desc ~ "\">" }
+infoheader = {"##INFO=<ID=" ~ idname ~ "," ~ "Number=" ~ (ASCII_ALPHANUMERIC | ".") ~ ",Type=" ~ (ASCII_ALPHANUMERIC)+ ~ "," ~ "Description=\"" ~ desc ~ "\">" }

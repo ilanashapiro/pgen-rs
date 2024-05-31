@@ -10,30 +10,6 @@ use pest_derive::Parser;
 #[grammar = "pvar_parser.pest"]
 pub struct PvarParser;
 
-enum ParsingRules {
-    CHROM,
-    POS,
-    ID,
-    REF,
-    ALT,
-    QUAL,
-    FILTER,
-    INFO,
-}
-
-fn get_rule(rule_name: ParsingRules) -> Rule {
-    match rule_name {
-        ParsingRules::CHROM => Rule::CHROM,
-        ParsingRules::POS => Rule::POS,
-        ParsingRules::ID => Rule::ID,
-        ParsingRules::REF => Rule::REF,
-        ParsingRules::ALT => Rule::ALT,
-        ParsingRules::QUAL => Rule::QUAL,
-        ParsingRules::FILTER => Rule::FILTER,
-        ParsingRules::INFO => Rule::INFO,
-    }
-}
-
 impl PvarParser {
     fn get_substring_from_index(input: &str, start_index: usize) -> Option<&str> {
         if start_index < input.len() {
@@ -55,24 +31,46 @@ impl PvarParser {
         return None
     }
 
-    pub fn get_meta_descs(input: &str) -> HashMap<String, String>{
-        let mut kv_pairs = HashMap::new();
-        let pairs = PvarParser::parse(Rule::infoheader, input).ok().unwrap();
-        let mut idname = "";
-        let mut desc = "a";
-        for pair in pairs {
-            for inner_pair in pair.into_inner() {
-                if inner_pair.as_rule() == Rule::idname {
-                    idname = inner_pair.as_str();
+    fn get_meta_descs(input: &str) -> (String, String) {
+        // let mut kv_pairs = HashMap::new();
+        let pairs_opt = PvarParser::parse(Rule::infoheader, input).ok();
+        match pairs_opt {
+            Some (pairs) => {
+                let mut idname = "";
+                let mut desc = "a";
+                for pair in pairs {
+                    for inner_pair in pair.into_inner() {
+                        if inner_pair.as_rule() == Rule::idname {
+                            idname = inner_pair.as_str();
+                        }
+                        if inner_pair.as_rule() == Rule::desc {
+                            desc = inner_pair.as_str();
+            
+                        }
+                    }
                 }
-                if inner_pair.as_rule() == Rule::desc {
-                    desc = inner_pair.as_str();
+                return (idname.to_string(), desc.to_string())
+            },
+            None => return ("".to_string(), "".to_string()),
+        };
+    }
+
+    pub fn format_descriptions(filepath: &str) -> io::Result<Vec<String>> {
+        let file_path = filepath;
+        let file = File::open(file_path)?;
+        let reader = io::BufReader::new(file);
+        let mut parsed_descriptions = Vec::new();
     
-                }
+        for line in reader.lines() {
+            let line = line?;
+            if line.starts_with("##INFO=") {
+                let (name, desc) = Self::get_meta_descs(&line);
+                parsed_descriptions.push(format!("- {}: {}", name, desc));
+            } else if line.starts_with("#CHROM") {
+                break;
             }
         }
-        kv_pairs.insert(idname.to_string(), desc.to_string());
-        return kv_pairs
+        Ok(parsed_descriptions)
     }
     
     pub fn get_meta_idnames(filepath: &str) -> io::Result<Vec<String>> {
@@ -114,25 +112,30 @@ impl PvarParser {
 
     pub fn get_info_kv_pairs(input: &str) -> HashMap<String, String> {
         let mut kv_pairs = HashMap::new();
-        let pairs = PvarParser::parse(Rule::INFO, input).ok().unwrap();
-        for pair in pairs {
-            for inner_pair in pair.into_inner() {
-                if inner_pair.as_rule() == Rule::key_val_pair {
-                    let mut keyname = "";
-                    let mut val = "";
-                    for kv in inner_pair.into_inner() {
-                        if kv.as_rule() == Rule::key_name {
-                            keyname = kv.as_str();
-                        }
-                        if kv.as_rule() == Rule::value {
-                            val = kv.as_str();
+        let pairs_opt = PvarParser::parse(Rule::INFO, input).ok();
+        match pairs_opt {
+            Some (pairs) => {
+                for pair in pairs {
+                    for inner_pair in pair.into_inner() {
+                        if inner_pair.as_rule() == Rule::key_val_pair {
+                            let mut keyname = "";
+                            let mut val = "";
+                            for kv in inner_pair.into_inner() {
+                                if kv.as_rule() == Rule::key_name {
+                                    keyname = kv.as_str();
+                                }
+                                if kv.as_rule() == Rule::value {
+                                    val = kv.as_str();
+                                }
+                            }
+                            kv_pairs.insert(keyname.to_string(), val.to_string());
+                        } else if inner_pair.as_rule() == Rule::key_name {
+                            kv_pairs.insert(inner_pair.as_str().to_string(), "".to_string());
                         }
                     }
-                    kv_pairs.insert(keyname.to_string(), val.to_string());
-                } else if inner_pair.as_rule() == Rule::key_name {
-                    kv_pairs.insert(inner_pair.as_str().to_string(), "".to_string());
                 }
-            }
+            },
+            None => (),
         }
         return kv_pairs
     }
