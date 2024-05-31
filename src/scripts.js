@@ -33,19 +33,26 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   submitButton.addEventListener('click', () => {
-    // const success = Math.random() > 0.5;
     let queryText = "";
+    const formatStr = 'CHROM + " " + POS';
     if (sampleQueryCheckbox.checked) {
       if (sampleQueryInput.value != "") {
-        queryText += " -s '" + sampleQueryInput.value + "'";
+        // if the user formats the string then we assume they know what they're doing and don't add any quotes etc. 
+        if (sampleQueryInput.value.includes('-f')) {
+          queryText += `-s ${sampleQueryInput.value}`
+        } else {
+          queryText += `-s '{sampleQueryInput.value}' -f '${formstStr}'`
+        }
       }
-    } else {
-      if (variantQueryCheckbox.checked) {
-        queryText += "'" + variantQueryInput.value + "'";
+    } else if (variantQueryCheckbox.checked) {
+      if (variantQueryInput.value.includes('-f')) {
+        queryText += `${variantQueryInput.value}`
+      } else {
+        queryText += `'${variantQueryInput.value}' -f '${formatStr}'`
       }
     }
     console.log(queryText);
-    const querystr = 'pgen-rs query -i ' + queryText;
+    const querystr = `pgen-rs query --include ${queryText} ${file.value}`;
     submitQuery(querystr).then(success => {
       resultMessage.textContent = success ? 'Success! Queries submitted.' : 'Error: Something went wrong.';
       resultMessage.style.color = success ? 'green' : 'red';
