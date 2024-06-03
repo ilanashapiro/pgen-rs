@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (sampleQueryInput.value.includes('-f')) {
           queryText += `-s ${sampleQueryInput.value}`
         } else {
-          queryText += `-s '{sampleQueryInput.value}' -f '${formstStr}'`
+          queryText += `-s '${sampleQueryInput.value}' -f '${formatStr}'`
         }
       }
     } else if (variantQueryCheckbox.checked) {
@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
         queryText += `'${variantQueryInput.value}' -f '${formatStr}'`
       }
     }
-    console.log(queryText);
+    
     const querystr = `pgen-rs query --include ${queryText} ${file.value}`;
     submitQuery(querystr).then(success => {
       resultMessage.textContent = success ? 'Success! Queries submitted.' : 'Error: Something went wrong.';
