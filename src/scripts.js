@@ -34,25 +34,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
   submitButton.addEventListener('click', () => {
     let queryText = "";
-    const formatStr = 'CHROM + " " + POS';
-    if (sampleQueryCheckbox.checked) {
-      if (sampleQueryInput.value != "") {
-        // if the user formats the string then we assume they know what they're doing and don't add any quotes etc. 
-        if (sampleQueryInput.value.includes('-f')) {
-          queryText += `-s ${sampleQueryInput.value}`
-        } else {
-          queryText += `-s '{sampleQueryInput.value}' -f '${formstStr}'`
-        }
-      }
-    } else if (variantQueryCheckbox.checked) {
-      if (variantQueryInput.value.includes('-f')) {
-        queryText += `${variantQueryInput.value}`
+    const vformatStr = 'CHROM + " " + POS';
+    const sformatStr = 'IID + " " + SEX';
+    if (sampleQueryCheckbox.checked && sampleQueryInput.value) {
+      // if the user formats the string then we assume they know what they're doing and don't add any quotes etc. 
+      if (sampleQueryInput.value.includes('-f')) {
+        queryText += `-s -i ${sampleQueryInput.value}`;
       } else {
-        queryText += `'${variantQueryInput.value}' -f '${formatStr}'`
+        queryText += `-s -i '${sampleQueryInput.value}' -f '${sformatStr}'`;
+      }
+    } 
+    if (variantQueryCheckbox.checked && variantQueryInput.value) {
+      if (queryText) {
+        queryText += ` && -i `;
+      } else {
+        queryText += `-i `;
+      }
+      if (variantQueryInput.value.includes('-f')) {
+        queryText += `${variantQueryInput.value}`;
+      } else {
+        queryText += `'${variantQueryInput.value}' -f '${vformatStr}'`;
       }
     }
-    console.log(queryText);
-    const querystr = `pgen-rs query --include ${queryText} ${file.value}`;
+    const querystr = `pgen-rs query ${queryText} ${file.value}`;
+    console.log(querystr);
     submitQuery(querystr).then(success => {
       resultMessage.textContent = success ? 'Success! Queries submitted.' : 'Error: Something went wrong.';
       resultMessage.style.color = success ? 'green' : 'red';
