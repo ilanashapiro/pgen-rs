@@ -34,31 +34,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
   submitButton.addEventListener('click', () => {
     let queryText = "";
-    const vformatStr = 'CHROM + " " + POS';
-    const sformatStr = 'IID + " " + SEX';
+    // const vformatStr = 'CHROM + " " + POS';
+    // const sformatStr = 'IID + " " + SEX';
     if (sampleQueryCheckbox.checked && sampleQueryInput.value) {
       // if the user formats the string then we assume they know what they're doing and don't add any quotes etc. 
-      if (sampleQueryInput.value.includes('-f')) {
-        queryText += `-s -i ${sampleQueryInput.value}`;
+      if (sampleQueryInput.value.startsWith("'") && sampleQueryInput.value.endsWith("'") ) {
+        queryText += `--include-sam ${sampleQueryInput.value} `;
+      } else if (sampleQueryInput.value.startsWith("'") && !sampleQueryInput.value.endsWith("'") ) {
+        queryText += `--include-sam ${sampleQueryInput.value}' `;
+      } else if (!sampleQueryInput.value.startsWith("'") && sampleQueryInput.value.endsWith("'") ) {
+        queryText += `--include-sam '${sampleQueryInput.value} `;
       } else {
-        queryText += `-s -i '${sampleQueryInput.value}' -f '${sformatStr}'`;
+        queryText += `--include-sam '${sampleQueryInput.value}' `;
       }
     } 
     if (variantQueryCheckbox.checked && variantQueryInput.value) {
-      if (queryText) {
-        queryText += ` && -i `;
+      if (variantQueryInput.value.startsWith("'") && variantQueryInput.value.endsWith("'") ) {
+        queryText += `--include-var ${variantQueryInput.value}`;
+      } else if (variantQueryInput.value.startsWith("'") && !variantQueryInput.value.endsWith("'") ) {
+        queryText += `--include-var ${variantQueryInput.value}'`;
+      } else if (!variantQueryInput.value.startsWith("'") && variantQueryInput.value.endsWith("'") ) {
+        queryText += `--include-var '${variantQueryInput.value}`;
       } else {
-        queryText += `-i `;
-      }
-      if (variantQueryInput.value.includes('-f')) {
-        queryText += `${variantQueryInput.value}`;
-      } else {
-        queryText += `'${variantQueryInput.value}' -f '${vformatStr}'`;
+        queryText += `--include-var '${variantQueryInput.value}'`;
       }
     }
-    const querystr = `pgen-rs query ${queryText} ${file.value}`;
-    console.log(querystr);
-    submitQuery(querystr).then(success => {
+    // const querystr = `pgen-rs query ${queryText} ${file.value}`;
+    const queryStr = `pgen-rs filter ${file.value} ${queryText}`
+    console.log(queryStr);
+    submitQuery(queryStr).then(success => {
       resultMessage.textContent = success ? 'Success! Queries submitted.' : 'Error: Something went wrong.';
       resultMessage.style.color = success ? 'green' : 'red';
     });
