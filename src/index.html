@@ -15,8 +15,8 @@
         </div>
         <div class="query-field">
             <label>
-                <input type="checkbox" id="variantQueryCheckbox" checked>
-                Variant Query:
+                <input type="checkbox" id="variantQueryCheckbox">
+                Variant Predicate:
             </label>
             <div class="suggestions">
                 <input type="text" id="variantQuery" disabled>
@@ -27,8 +27,8 @@
         </div>
         <div class="query-field">
             <label>
-                <input type="checkbox" id="sampleQueryCheckbox" checked>
-                Sample Query:
+                <input type="checkbox" id="sampleQueryCheckbox">
+                Sample Predicate:
             </label>
             <div class="suggestions">
                 <input type="text" id="sampleQuery" disabled>
@@ -37,7 +37,8 @@
             <input type="text" id="sampleSuggestionsInput" placeholder="Get suggestions">
             <button id="sampleAskButton">Ask</button>
         </div>
-        <button id="submitButton">Submit</button>
+        <button id="submitQueryButton">Submit Query</button>
+        <button id="submitFilterButton">Submit Filter</button>
         <div id="resultMessage"></div>
     </div>
     <script src="scripts.js"></script>

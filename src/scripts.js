@@ -11,7 +11,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const sampleSuggestionsList = document.getElementById('sampleSuggestionsList');
   const sampleSuggestionsInput = document.getElementById('sampleSuggestionsInput');
 
-  const submitButton = document.getElementById('submitButton');
+  const submitQueryButton = document.getElementById('submitQueryButton');
+  const submitFilterButton = document.getElementById('submitFilterButton');
   const resultMessage = document.getElementById('resultMessage');
 
   const file = document.getElementById('file');
@@ -32,10 +33,40 @@ document.addEventListener('DOMContentLoaded', () => {
     displaySuggestions(sampleSuggestionsList, 'Sample', sampleQueryInput, sampleSuggestionsInput.value);
   });
 
-  submitButton.addEventListener('click', () => {
+  submitQueryButton.addEventListener('click', () => {
     let queryText = "";
-    // const vformatStr = 'CHROM + " " + POS';
-    // const sformatStr = 'IID + " " + SEX';
+    const vformatStr = 'CHROM + " " + POS';
+    const sformatStr = 'IID + " " + SEX';
+    if (sampleQueryCheckbox.checked && sampleQueryInput.value) {
+      // if the user formats the string then we assume they know what they're doing and don't add any quotes etc. 
+      if (sampleQueryInput.value.includes('-f')) {
+        queryText += `-s -i ${sampleQueryInput.value}`;
+      } else {
+        queryText += `-s -i '${sampleQueryInput.value}' -f '${sformatStr}'`;
+      }
+    } 
+    if (variantQueryCheckbox.checked && variantQueryInput.value) {
+      if (queryText) {
+        queryText += ` && -i `;
+      } else {
+        queryText += `-i `;
+      }
+      if (variantQueryInput.value.includes('-f')) {
+        queryText += `${variantQueryInput.value}`;
+      } else {
+        queryText += `'${variantQueryInput.value}' -f '${vformatStr}'`;
+      }
+    }
+    const querystr = `pgen-rs query ${queryText} ${file.value}`;
+    console.log(querystr);
+    submitQuery(querystr).then(success => {
+      resultMessage.textContent = success ? 'Success! Query submitted.' : 'Error: Something went wrong.';
+      resultMessage.style.color = success ? 'green' : 'red';
+    });
+  });
+
+  submitFilterButton.addEventListener('click', () => {
+    let queryText = "";
     if (sampleQueryCheckbox.checked && sampleQueryInput.value) {
       // if the user formats the string then we assume they know what they're doing and don't add any quotes etc. 
       if (sampleQueryInput.value.startsWith("'") && sampleQueryInput.value.endsWith("'") ) {
@@ -59,11 +90,11 @@ document.addEventListener('DOMContentLoaded', () => {
         queryText += `--include-var '${variantQueryInput.value}'`;
       }
     }
-    // const querystr = `pgen-rs query ${queryText} ${file.value}`;
+
     const queryStr = `pgen-rs filter ${file.value} ${queryText}`
     console.log(queryStr);
     submitQuery(queryStr).then(success => {
-      resultMessage.textContent = success ? 'Success! Queries submitted.' : 'Error: Something went wrong.';
+      resultMessage.textContent = success ? 'Success! Filter(s) submitted.' : 'Error: Something went wrong.';
       resultMessage.style.color = success ? 'green' : 'red';
     });
   });
